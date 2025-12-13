@@ -1,33 +1,64 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import WeatherWidget from '../components/WeatherWidget'
-import AttractionsList from '../components/AttractionsList'
-import CurrencyRates from '../components/CurrencyRates'
-import LanguageInfo from '../components/LanguageInfo'
-import HotelsList from '../components/HotelsList'
-import BookingForm from '../components/BookingForm'
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 
-export default function DestinationPage(){
-  const { countryCode } = useParams()
-  const country = { name: countryCode, languages: ['Local language', 'English'] }
+import { getCountryByCode } from "../services/countryService";
+import AirportInfo from "../components/AirportInfo";
+import FavoriteButton from "../components/FavoriteButton";
+import MapView from "../components/MapView";
+import WeatherCard from "../components/WeatherCard";
+import CurrencyConverter from "../components/CurrencyConverter";
+import AttractionsList from "../components/AttractionsList";
 
-  const handleBooking = (values) => {
+export default function DestinationPage() {
+  const { code } = useParams();
+  const [country, setCountry] = useState(null);
 
-    alert('Booking submitted: ' + JSON.stringify(values))
-  }
+  useEffect(() => {
+    async function fetchCountry() {
+      const data = await getCountryByCode(code);
+      setCountry(data);
+    }
+    fetchCountry();
+  }, [code]);
+
+  if (!country) return <p>Loading...</p>;
+
+  const currencyCode = country.currencies
+    ? Object.keys(country.currencies)[0]
+    : "USD";
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 space-y-4">
-        <WeatherWidget place={country.name} />
-        <AttractionsList place={country.name} />
-        <HotelsList city={country.name} />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">{country.name.common}</h1>
+        <FavoriteButton countryCode={country.cca2} />
       </div>
-      <aside className="space-y-4">
-        <CurrencyRates base={'USD'} />
-        <LanguageInfo country={country} />
-        <BookingForm onSubmit={handleBooking} />
-      </aside>
+
+      <MapView
+        lat={country.latlng[0]}
+        lon={country.latlng[1]}
+        name={country.name.common}
+      />
+
+      <div className="grid md:grid-cols-3 gap-4">
+        <WeatherCard lat={country.latlng[0]} lon={country.latlng[1]} />
+        <CurrencyConverter currency={currencyCode} />
+      </div>
+
+      <section>
+        <h2 className="text-2xl font-bold mb-2">Top Attractions</h2>
+        <AttractionsList
+          lat={country.latlng[0]}
+          lon={country.latlng[1]}
+        />
+      </section>
+
+      <section>
+         <div>
+      <h1>Destination: France</h1>
+      <AirportInfo countryName="FR" />
     </div>
-  )
+      </section>
+    </div>
+  );
 }

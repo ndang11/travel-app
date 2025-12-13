@@ -1,24 +1,49 @@
-import React, { useEffect, useState } from 'react'
-import { getTopAttractions } from '../services/placesService'
+import React, { useEffect, useState } from "react";
+import { getAttractions } from "../services/attractionService";
 
-export default function AttractionsList({ place }){
-  const [items, setItems] = useState([])
+export default function AttractionsList({ lat, lon }) {
+  const [attractions, setAttractions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (!place) return
-    getTopAttractions(place).then(d => setItems(d?.results || [])).catch(()=>{})
-  }, [place])
+    async function fetchAttractions() {
+      setLoading(true);
+      const data = await getAttractions(lat, lon);
+      setAttractions(data);
+      setLoading(false);
+    }
+
+    if (lat && lon) {
+      fetchAttractions();
+    }
+  }, [lat, lon]);
+
+  if (loading) return <p>Loading attractions...</p>;
+  if (attractions.length === 0) return <p>No attractions found.</p>;
 
   return (
-    <div>
-      <h4 className="text-lg font-semibold mb-3">Top Attractions</h4>
-      <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {items.map(at => (
-          <li key={at.id} className="border p-3 rounded">
-            <div className="font-semibold">{at.name}</div>
-            <div className="text-sm text-gray-600">{at.vicinity || at.description}</div>
-          </li>
-        ))}
-      </ul>
+    <div className="grid md:grid-cols-3 gap-6">
+      {attractions.map((item) => (
+        <div
+          key={item.id}
+          className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition"
+        >
+          <img
+            src={item.image}
+            alt={item.name}
+            className="w-full h-48 object-cover"
+            onError={(e) => {
+              e.target.src =
+                "https://images.unsplash.com/photo-1502920514313-52581002a659";
+            }}
+          />
+
+          <div className="p-4">
+            <h3 className="font-semibold text-lg">{item.name}</h3>
+            <p className="text-sm text-gray-600">{item.address}</p>
+          </div>
+        </div>
+      ))}
     </div>
-  )
+  );
 }

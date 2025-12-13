@@ -1,9 +1,19 @@
-import api from './api'
+import axios from "axios";
 
-export const getTopAttractions = async (place) => {
-  
-  const key = import.meta.env.VITE_PLACES_API_KEY
-  const url = `https://api.example.com/places/attractions?place=${encodeURIComponent(place)}&key=${key}`
-  const res = await api.get(url)
-  return res.data
-}
+const API_KEY = import.meta.env.VITE_PLACES_API_KEY;
+const BASE_URL = "https://api.yourplacesprovider.com"; // Replace with real places API
+
+export const getTopAttractions = async (city) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/places/attractions`, {
+      params: {
+        place: city,
+        key: API_KEY,
+      },
+    });
+    return response.data.results;
+  } catch (error) {
+    console.error("Error fetching attractions:", error);
+    return [];
+  }
+};

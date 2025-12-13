@@ -1,15 +1,27 @@
-import api from './api'
+const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
 
-export const getCurrentWeather = async (q) => {
-  const key = import.meta.env.VITE_WEATHER_API_KEY
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(q)}&units=metric&appid=${key}`
-  const res = await api.get(url)
-  return res.data
-}
+export async function getWeather(lat, lon) {
+  try {
+    if (!API_KEY) {
+      throw new Error("Missing OpenWeather API key");
+    }
 
-export const getForecast = async (lat, lon) => {
-  const key = import.meta.env.VITE_WEATHER_API_KEY
-  const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely&units=metric&appid=${key}`
-  const res = await api.get(url)
-  return res.data
+    const res = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+    );
+
+    if (!res.ok) throw new Error("Weather fetch failed");
+
+    const data = await res.json();
+
+    return {
+      temp: data.main.temp,
+      condition: data.weather[0].main,
+      icon: data.weather[0].icon,
+      city: data.name,
+    };
+  } catch (err) {
+    console.error("Weather error:", err);
+    return null;
+  }
 }
