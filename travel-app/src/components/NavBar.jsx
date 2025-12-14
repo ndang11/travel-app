@@ -1,160 +1,194 @@
-import React, { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { HiMenu, HiX } from "react-icons/hi";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-export default function Header() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+export default function Navbar() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [favoritesCount, setFavoritesCount] = useState(0);
+  const [open, setOpen] = useState(false);
 
-  const toggleMenu = () => setMenuOpen(!menuOpen);
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+  // LOAD FAVORITES COUNT
+  useEffect(() => {
+    function syncFavorites() {
+      const favs = JSON.parse(localStorage.getItem("favorites")) || [];
+      setFavoritesCount(favs.length);
+    }
 
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Search", path: "/search" },
-    { name: "Bookings", path: "/bookings" },
-  ];
+    syncFavorites();
+    window.addEventListener("storage", syncFavorites);
 
-  const destinations = [
-    { name: "Paris", path: "/destination/paris" },
-    { name: "Tokyo", path: "/destination/tokyo" },
-    { name: "New York", path: "/destination/new-york" },
-  ];
+    return () => window.removeEventListener("storage", syncFavorites);
+  }, []);
 
-  const attractions = [
-    { name: "Eiffel Tower", path: "/attraction/eiffel-tower" },
-    { name: "Disneyland Tokyo", path: "/attraction/disneyland-tokyo" },
-    { name: "Central Park", path: "/attraction/central-park" },
-  ];
+  function handleSearch(e) {
+    e.preventDefault();
+    if (!query.trim()) return;
+    navigate(`/search?q=${query}`);
+    setQuery("");
+    setOpen(false);
+  }
 
   return (
-    <header className="bg-white shadow-md relative z-50">
-      <div className="container mx-auto flex items-center justify-between p-4">
-        {/* Logo / Brand */}
-        <Link to="/" className="text-2xl font-bold text-blue-600">
-          TravelApp
-        </Link>
+    <nav className="sticky top-0 z-50 bg-white border-b shadow-sm">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
 
-        {/* Desktop Links */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
+          {/* LOGO */}
+          <Link to="/" className="text-2xl font-extrabold text-blue-600">
+            🌍 TravelX
+          </Link>
+
+          {/* DESKTOP MENU */}
+          <div className="hidden md:flex items-center gap-6">
+
             <NavLink
-              key={link.name}
-              to={link.path}
+              to="/"
               className={({ isActive }) =>
-                isActive
-                  ? "text-blue-600 font-semibold"
-                  : "text-gray-700 hover:text-blue-500"
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
               }
             >
-              {link.name}
+              Home
             </NavLink>
-          ))}
 
-          {/* Destinations Dropdown */}
-          <div className="relative">
-            <button
-              onMouseEnter={() => setDropdownOpen(true)}
-              onMouseLeave={() => setDropdownOpen(false)}
-              className="text-gray-700 hover:text-blue-500 font-medium"
+            <NavLink
+              to="/destination"
+              className={({ isActive }) =>
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
+              }
             >
               Destinations
-            </button>
-            {dropdownOpen && (
-              <div
-                onMouseEnter={() => setDropdownOpen(true)}
-                onMouseLeave={() => setDropdownOpen(false)}
-                className="absolute top-full left-0 bg-white shadow-lg rounded-md py-2 w-48"
-              >
-                {destinations.map((dest) => (
-                  <Link
-                    key={dest.name}
-                    to={dest.path}
-                    className="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-700"
-                  >
-                    {dest.name}
-                  </Link>
-                ))}
-              </div>
-            )}
+            </NavLink>
+
+            <NavLink
+              to="/booking"
+              className={({ isActive }) =>
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
+              }
+            >
+              Booking
+            </NavLink>
+
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
+              }
+            >
+              About
+            </NavLink>
+
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
+              }
+            >
+              Contact
+            </NavLink>
+
+            <NavLink
+              to="/favorites"
+              className={({ isActive }) =>
+                isActive ? "font-semibold text-blue-600" : "text-gray-600"
+              }
+            >
+              Favorites
+              {favoritesCount > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {favoritesCount}
+                </span>
+              )}
+            </NavLink>
+
+            {/* SEARCH */}
+            <form onSubmit={handleSearch} className="flex">
+              <input
+                className="border rounded-l-lg px-3 py-1 text-sm focus:outline-none"
+                placeholder="Search country..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button className="bg-blue-600 text-white px-3 rounded-r-lg text-sm">
+                Go
+              </button>
+            </form>
           </div>
 
-          {/* Attractions Dropdown */}
-          <div className="relative">
-            <button className="text-gray-700 hover:text-blue-500 font-medium">
-              Attractions
-            </button>
-            <div className="absolute top-full left-0 bg-white shadow-lg rounded-md py-2 w-48 hidden group-hover:block">
-              {attractions.map((attr) => (
-                <Link
-                  key={attr.name}
-                  to={attr.path}
-                  className="block px-4 py-2 text-gray-700 hover:bg-blue-100 hover:text-blue-700"
-                >
-                  {attr.name}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </nav>
-
-        {/* Mobile Hamburger */}
-        <div className="md:hidden">
-          <button onClick={toggleMenu}>
-            {menuOpen ? <HiX className="w-6 h-6" /> : <HiMenu className="w-6 h-6" />}
+          {/* MOBILE MENU BUTTON */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="md:hidden text-2xl"
+          >
+            ☰
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-white shadow-md">
-          <nav className="flex flex-col space-y-2 p-4">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.name}
-                to={link.path}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  isActive
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-700 hover:text-blue-500"
-                }
-              >
-                {link.name}
-              </NavLink>
-            ))}
+      {/* MOBILE MENU */}
+      {open && (
+        <div className="md:hidden border-t bg-white px-4 py-4 space-y-4">
 
-            <div className="mt-2">
-              <p className="font-medium mb-1">Destinations</p>
-              {destinations.map((dest) => (
-                <Link
-                  key={dest.name}
-                  to={dest.path}
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-2 py-1 text-gray-700 hover:bg-blue-100 rounded"
-                >
-                  {dest.name}
-                </Link>
-              ))}
-            </div>
+          <NavLink
+            to="/"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            Home
+          </NavLink>
 
-            <div className="mt-2">
-              <p className="font-medium mb-1">Attractions</p>
-              {attractions.map((attr) => (
-                <Link
-                  key={attr.name}
-                  to={attr.path}
-                  onClick={() => setMenuOpen(false)}
-                  className="block px-2 py-1 text-gray-700 hover:bg-blue-100 rounded"
-                >
-                  {attr.name}
-                </Link>
-              ))}
-            </div>
-          </nav>
+          <NavLink
+            to="/destination"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            Destinations
+          </NavLink>
+
+          <NavLink
+            to="/booking"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            Booking
+          </NavLink>
+
+          <NavLink
+            to="/about"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            About
+          </NavLink>
+
+          <NavLink
+            to="/contact"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            Contact
+          </NavLink>
+
+          <NavLink
+            to="/favorites"
+            onClick={() => setOpen(false)}
+            className="block font-medium"
+          >
+            Favorites ({favoritesCount})
+          </NavLink>
+
+          <form onSubmit={handleSearch} className="flex">
+            <input
+              className="flex-1 border rounded-l-lg px-3 py-2"
+              placeholder="Search country..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button className="bg-blue-600 text-white px-4 rounded-r-lg">
+              Go
+            </button>
+          </form>
         </div>
       )}
-    </header>
+    </nav>
   );
 }

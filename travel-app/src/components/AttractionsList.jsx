@@ -1,49 +1,41 @@
-import React, { useEffect, useState } from "react";
-import { getAttractions } from "../services/attractionService";
+import { useEffect, useState } from "react";
+import { getPixabayImage } from "../services/pixabayService";
 
-export default function AttractionsList({ lat, lon }) {
-  const [attractions, setAttractions] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function AttractionsList({ country }) {
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
-    async function fetchAttractions() {
-      setLoading(true);
-      const data = await getAttractions(lat, lon);
-      setAttractions(data);
-      setLoading(false);
+    async function loadImage() {
+      const img = await getPixabayImage(`${country} tourist attraction`);
+      setImage(img);
     }
 
-    if (lat && lon) {
-      fetchAttractions();
-    }
-  }, [lat, lon]);
-
-  if (loading) return <p>Loading attractions...</p>;
-  if (attractions.length === 0) return <p>No attractions found.</p>;
+    loadImage();
+  }, [country]);
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
-      {attractions.map((item) => (
-        <div
-          key={item.id}
-          className="border rounded-lg overflow-hidden shadow hover:shadow-lg transition"
-        >
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-48 object-cover"
-            onError={(e) => {
-              e.target.src =
-                "https://images.unsplash.com/photo-1502920514313-52581002a659";
-            }}
-          />
+    <section>
+      <h2 className="text-2xl font-bold mb-3">Top Attractions</h2>
 
-          <div className="p-4">
-            <h3 className="font-semibold text-lg">{item.name}</h3>
-            <p className="text-sm text-gray-600">{item.address}</p>
+      <div className="border rounded overflow-hidden">
+        {image ? (
+          <img
+            src={image}
+            alt={country}
+            className="w-full h-64 object-cover"
+          />
+        ) : (
+          <div className="h-64 bg-gray-200 flex items-center justify-center">
+            No image available
           </div>
+        )}
+
+        <div className="p-4">
+          <p className="text-gray-600">
+            Discover popular attractions in {country}.
+          </p>
         </div>
-      ))}
-    </div>
+      </div>
+    </section>
   );
 }

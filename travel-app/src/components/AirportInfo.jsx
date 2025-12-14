@@ -1,57 +1,51 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getAirports } from "../services/airportService";
+import { getPixabayImage } from "../services/pixabayService";
 
-export default function AirportInfo({ countryCode }) {
+export default function AirportInfo({ countryCode, countryName }) {
   const [airports, setAirports] = useState([]);
-  const [images, setImages] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  const PIXABAY_KEY = import.meta.env.VITE_PIXABAY_KEY;
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
-    async function fetchAirports() {
-      setLoading(true);
-      const data = await getAirports(countryCode);
-      setAirports(data);
+    if (!countryCode) return;
 
-      const imgs = {};
-      await Promise.all(
-        data.map(async (airport) => {
-          const query = encodeURIComponent(`${airport.name} airport`);
-          const res = await fetch(
-            `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${query}&image_type=photo&per_page=1`
-          );
-          const result = await res.json();
-          imgs[airport.iata_code || airport.name] = result.hits[0]?.webformatURL;
-        })
-      );
-      setImages(imgs);
-      setLoading(false);
+    async function loadData() {
+      const airportData = await getAirports(countryCode);
+      setAirports(airportData.slice(0, 3));
+
+      const img = await getPixabayImage(`${countryName} airport`);
+      setImage(img);
     }
 
-    if (countryCode) fetchAirports();
-  }, [countryCode]);
-
-  if (loading) return <p>Loading airports...</p>;
-  if (airports.length === 0) return <p>No airports found in {countryCode}.</p>;
+    loadData();
+  }, [countryCode, countryName]);
 
   return (
-    <div>
-      <h2>Airports in {countryCode}</h2>
-      <ul>
-        {airports.map((airport) => (
-          <li key={airport.iata_code || airport.name} style={{ marginBottom: "20px" }}>
-            <strong>{airport.name}</strong> ({airport.iata_code || "N/A"}) – {airport.city}
-            {images[airport.iata_code || airport.name] && (
-              <img
-                src={images[airport.iata_code || airport.name]}
-                alt={airport.name}
-                style={{ width: "250px", display: "block", marginTop: "10px" }}
-              />
-            )}
+    <section className="space-y-4">
+      <h2 className="text-2xl font-bold">Airports</h2>
+
+      {image && (
+        <img
+          src={image}
+          alt={`${countryName} airport`}
+          className="w-full h-56 object-cover rounded"
+        />
+      )}
+
+      {airports.length === 0 && (
+        <p className="text-gray-500">No airport data available.</p>
+      )}
+
+      <ul className="space-y-2">
+        {airports.map((a, i) => (
+          <li key={i} className="border p-3 rounded">
+            <p className="font-semibold">{a.name}</p>
+            <p className="text-sm text-gray-600">
+              {a.city || "Unknown city"} — {a.iata || "N/A"}
+            </p>
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

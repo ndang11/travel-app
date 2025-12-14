@@ -1,16 +1,21 @@
-const PIXABAY_KEY = import.meta.env.VITE_PIXABAY_KEY;
+const API_KEY = import.meta.env.VITE_PIXABAY_API_KEY;
+const BASE_URL = "https://pixabay.com/api/";
 
-export async function getImage(query) {
+export async function getPixabayImage(query) {
   try {
     const res = await fetch(
-      `https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(
+      `${BASE_URL}?key=${API_KEY}&q=${encodeURIComponent(
         query
-      )}&image_type=photo&per_page=1`
+      )}&image_type=photo&per_page=3&safesearch=true`
     );
+
+    if (!res.ok) throw new Error("Pixabay fetch failed");
+
     const data = await res.json();
-    return data.hits[0]?.webformatURL || null;
+
+    return data.hits?.[0]?.webformatURL || null;
   } catch (error) {
-    console.error("getImage error:", error);
+    console.error("Pixabay error:", error);
     return null;
   }
 }
