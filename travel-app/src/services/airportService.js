@@ -1,38 +1,37 @@
 const API_KEY = import.meta.env.VITE_AVIATIONSTACK_KEY;
-const BASE_URL = "http://api.aviationstack.com/v1/airports";
+const BASE_URL = "https://api.aviationstack.com/v1/airports";
 
-export async function getAirports({ countryName, cityName }) {
-  if (!API_KEY) {
-    console.error(" Missing AviationStack API key. Add VITE_AVIATIONSTACK_KEY in .env");
-    return [];
-  }
-
-  if (!countryName && !cityName) {
-    console.warn("Either countryName or cityName is required");
-    return [];
-  }
-
+export async function getAirportsByCountry(countryName, limit = 10) {
   try {
-    let url = `${BASE_URL}?access_key=${API_KEY}&limit=10`;
-    if (countryName) url += `&country_name=${encodeURIComponent(countryName)}`;
-    if (cityName) url += `&city=${encodeURIComponent(cityName)}`;
+    if (!API_KEY) {
+      console.error("Missing AviationStack API key");
+      return [];
+    }
+
+    if (!countryName) {
+      console.warn("⚠️ Country name is required");
+      return [];
+    }
+
+    const url = `${BASE_URL}?access_key=${API_KEY}&country_name=${encodeURIComponent(
+      countryName
+    )}&limit=${limit}`;
 
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`AviationStack request failed: ${res.status}`);
+
+    if (!res.ok) {
+      throw new Error("AviationStack request failed");
+    }
 
     const data = await res.json();
 
-    return (data?.data || []).map((airport) => ({
-      name: airport.airport_name,
-      city: airport.city,
-      iata: airport.iata_code,
-      icao: airport.icao_code,
-      latitude: airport.latitude,
-      longitude: airport.longitude,
-      timezone: airport.timezone,
-    }));
+    if (!data?.data) {
+      throw new Error("Invalid AviationStack response");
+    }
+
+    return data.data;
   } catch (error) {
-    console.error("getAirports error:", error);
+    console.error("getAirportsByCountry error:", error.message);
     return [];
   }
 }

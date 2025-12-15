@@ -7,7 +7,7 @@ import FavoriteButton from "../components/FavoriteButton";
 import MapView from "../components/MapView";
 import WeatherCard from "../components/WeatherCard";
 import CurrencyConverter from "../components/CurrencyConverter";
-import LanguageInfo from "../components/LanguageInfo"; 
+import LanguageInfo from "../components/LanguageInfo";
 
 export default function DestinationPage() {
   const { code, city } = useParams();
@@ -60,7 +60,6 @@ export default function DestinationPage() {
 
   return (
     <div className="space-y-8 p-6 max-w-6xl mx-auto">
-     
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">
           {country.name.common}
