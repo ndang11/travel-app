@@ -1,41 +1,56 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getPixabayImage } from "../services/pixabayService";
 
-export default function AttractionsList({ country }) {
-  const [image, setImage] = useState(null);
+const mockAttractions = [
+  "Museum",
+  "Park",
+  "Beach",
+  "Historic Site",
+  "Shopping District",
+  "Zoo",
+];
+
+export default function AttractionsList({ city }) {
+  const [images, setImages] = useState({});
 
   useEffect(() => {
-    async function loadImage() {
-      const img = await getPixabayImage(`${country} tourist attraction`);
-      setImage(img);
+    async function loadImages() {
+      const imgs = {};
+      for (const attraction of mockAttractions) {
+        const img = await getPixabayImage(`${city} ${attraction}`);
+        imgs[attraction] = img;
+      }
+      setImages(imgs);
     }
 
-    loadImage();
-  }, [country]);
+    loadImages();
+  }, [city]);
+
+  function handleClick(attraction) {
+    alert(`Explore more about ${attraction} in ${city}`);
+  }
 
   return (
-    <section>
-      <h2 className="text-2xl font-bold mb-3">Top Attractions</h2>
-
-      <div className="border rounded overflow-hidden">
-        {image ? (
-          <img
-            src={image}
-            alt={country}
-            className="w-full h-64 object-cover"
-          />
-        ) : (
-          <div className="h-64 bg-gray-200 flex items-center justify-center">
-            No image available
+    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {mockAttractions.map((attr) => (
+        <div
+          key={attr}
+          onClick={() => handleClick(attr)}
+          className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden cursor-pointer transform transition-transform hover:-translate-y-2 hover:shadow-lg duration-300"
+        >
+          {images[attr] && (
+            <img
+              src={images[attr]}
+              alt={attr}
+              className="w-full h-40 object-cover"
+            />
+          )}
+          <div className="p-4">
+            <h3 className="font-semibold text-lg">{attr}</h3>
+            <p className="text-gray-600 text-sm">Explore the best of {attr} in {city}</p>
           </div>
-        )}
-
-        <div className="p-4">
-          <p className="text-gray-600">
-            Discover popular attractions in {country}.
-          </p>
         </div>
-      </div>
-    </section>
+      ))}
+    </div>
   );
 }

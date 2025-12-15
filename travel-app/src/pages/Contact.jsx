@@ -11,12 +11,12 @@ export default function Contact() {
       <div className="border rounded p-6 space-y-4">
         <div>
           <p className="font-semibold">📧 Email</p>
-          <p className="text-gray-600">support@travelx.com</p>
+          <p className="text-gray-600">royaltyhopsin@gmail.com</p>
         </div>
 
         <div>
           <p className="font-semibold">📞 Phone</p>
-          <p className="text-gray-600">+1 234 567 890</p>
+          <p className="text-gray-600">+237 676062793</p>
         </div>
 
         <div>

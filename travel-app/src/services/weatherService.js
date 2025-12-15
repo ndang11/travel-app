@@ -1,27 +1,19 @@
-const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+const BASE_URL = "https://api.openweathermap.org/data/2.5/weather";
 
 export async function getWeather(lat, lon) {
   try {
-    if (!API_KEY) {
-      throw new Error("Missing OpenWeather API key");
-    }
-
     const res = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
+      `${BASE_URL}?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
     );
 
-    if (!res.ok) throw new Error("Weather fetch failed");
+    if (!res.ok) {
+      throw new Error("Weather fetch failed");
+    }
 
-    const data = await res.json();
-
-    return {
-      temp: data.main.temp,
-      condition: data.weather[0].main,
-      icon: data.weather[0].icon,
-      city: data.name,
-    };
-  } catch (err) {
-    console.error("Weather error:", err);
+    return await res.json();
+  } catch (error) {
+    console.error("getWeather error:", error);
     return null;
   }
 }
