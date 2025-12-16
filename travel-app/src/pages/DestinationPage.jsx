@@ -8,6 +8,7 @@ import MapView from "../components/MapView";
 import WeatherCard from "../components/WeatherCard";
 import CurrencyConverter from "../components/CurrencyConverter";
 import LanguageInfo from "../components/LanguageInfo";
+import HotelsList from "../components/HotelsList";
 
 export default function DestinationPage() {
   const { code, city } = useParams();
@@ -96,6 +97,10 @@ export default function DestinationPage() {
           Top Attractions in {displayCity}
         </h2>
         <AttractionsList city={displayCity} />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-2xl font-bold">Hotels in {displayCity}</h2>
+        <HotelsList cityCode={country.capitalInfo?.latlng ? "PAR" : null} />
       </section>
 
       <section className="space-y-4">

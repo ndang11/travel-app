@@ -1,4 +1,4 @@
-// src/components/FavoriteButton.jsx
+
 import React, { useState } from "react";
 
 export default function FavoriteButton({ countryCode }) {
@@ -6,7 +6,7 @@ export default function FavoriteButton({ countryCode }) {
 
   function toggleFavorite() {
     setFavorite(!favorite);
-    // optionally store in localStorage or backend
+ 
     const favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
     if (!favorite) {
       localStorage.setItem("favorites", JSON.stringify([...favorites, countryCode]));

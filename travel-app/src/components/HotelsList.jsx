@@ -1,37 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { searchHotels } from "../services/hotelsService";
+import { getHotels } from "../services/hotelService";
 
-export default function HotelsList({ city, checkin, checkout }) {
+export default function HotelsList({ cityCode }) {
   const [hotels, setHotels] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!city || !checkin || !checkout) return;
+    if (!cityCode) return;
 
-    const fetchHotels = async () => {
-      setLoading(true);
-      const data = await searchHotels({ city, checkin, checkout });
-      setHotels(data);
-      setLoading(false);
-    };
+    getHotels(cityCode)
+      .then(setHotels)
+      .catch(() => setError("Failed to load hotels"));
+  }, [cityCode]);
 
-    fetchHotels();
-  }, [city, checkin, checkout]);
-
-  if (loading) return <p>Loading hotels...</p>;
-  if (!hotels.length) return <p>No hotels found.</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {hotels.map((hotel) => (
-        <div key={hotel.id} className="border rounded p-4">
-          <img
-            src={hotel.image || "https://via.placeholder.com/150"}
-            alt={hotel.name}
-            className="w-full h-32 object-cover mb-2 rounded"
-          />
-          <h3 className="font-bold">{hotel.name}</h3>
-          <p>{hotel.address}</p>
+    <div className="grid md:grid-cols-3 gap-4">
+      {hotels.map(h => (
+        <div key={h.hotelId} className="border rounded p-4">
+          <h3 className="font-semibold">{h.name}</h3>
         </div>
       ))}
     </div>

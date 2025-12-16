@@ -1,39 +1,56 @@
-// import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { getHotels } from "../services/hotelService";
 
-// const API_KEY = import.meta.env.VITE_HOTELS_API_KEY;
-// const BASE_URL = "https://api.yourhotelsprovider.com"; // Replace with real hotels API
+export default function HotelsList({ cityCode }) {
+  const [hotels, setHotels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-// export const searchHotels = async ({ city, checkin, checkout }) => {
-//   if (!city || !checkin || !checkout) return [];
+  useEffect(() => {
+    if (!cityCode) return;
 
-//   try {
-//     const response = await axios.get(`${BASE_URL}/hotels/search`, {
-//       params: {
-//         city,
-//         checkin,
-//         checkout,
-//         key: API_KEY,
-//       },
-//     });
-//     return response.data.results; 
-//   } catch (error) {
-//     console.error("Error fetching hotels:", error);
-//     return [];
-//   }
-// };
+    async function loadHotels() {
+      try {
+        setLoading(true);
+        const data = await getHotels(cityCode);
+        setHotels(data);
+      } catch (err) {
+        setError("Failed to load hotels");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-import api from "./api";
+    loadHotels();
+  }, [cityCode]);
 
+  if (loading) {
+    return <p className="text-gray-500">Loading hotels...</p>;
+  }
 
-const KEY = import.meta.env.VITE_AMADEUS_API_KEY;
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
 
+  if (!hotels.length) {
+    return <p className="text-gray-500">No hotels found.</p>;
+  }
 
-export const getHotels = async (cityCode) => {
-const { data } = await api.get(
-"https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city", {
-headers: { Authorization: `Bearer ${KEY}` },
-params: { cityCode },
+  return (
+    <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {hotels.map((hotel) => (
+        <div
+          key={hotel.hotelId}
+          className="bg-white rounded-lg shadow border p-4"
+        >
+          <h3 className="font-semibold text-lg">
+            {hotel.name || "Unnamed Hotel"}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {hotel.address?.countryCode}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
 }
-);
-return data.data;
-};

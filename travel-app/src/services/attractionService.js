@@ -1,28 +1,30 @@
-const API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY;
+const GEOAPIFY_KEY = import.meta.env.VITE_GEOAPIFY_KEY;
 
-export async function getAttractions(lat, lon) {
+if (!GEOAPIFY_KEY) {
+  console.error("Missing Geoapify API key");
+}
+
+export async function getAttractionsByCity(city) {
   try {
-    if (!API_KEY) {
-      throw new Error("Missing Geoapify API key");
-    }
+    const res = await fetch(
+      `https://api.geoapify.com/v2/places?categories=tourism&text=${city}&limit=9&apiKey=${GEOAPIFY_KEY}`
+    );
 
-    const url = `https://api.geoapify.com/v2/places?categories=tourism.sights,tourism.attraction&filter=circle:${lon},${lat},10000&limit=9&apiKey=${API_KEY}`;
-
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Failed to fetch attractions");
+    if (!res.ok) throw new Error("Geoapify request failed");
 
     const data = await res.json();
 
     return data.features.map((item) => ({
       id: item.properties.place_id,
-      name: item.properties.name || "Attraction",
-      address: item.properties.formatted,
-      image:
-        item.properties.datasource?.raw?.image ||
-        "https://images.unsplash.com/photo-1502920514313-52581002a659",
+      name: item.properties.name,
+      category: item.properties.categories?.[0],
+      distance: item.properties.distance,
+      lat: item.properties.lat,
+      lon: item.properties.lon,
+      rating: (Math.random() * 1.5 + 3.5).toFixed(1),
     }));
   } catch (err) {
-    console.error("Geoapify attraction error:", err);
+    console.error("Attractions error:", err);
     return [];
   }
 }

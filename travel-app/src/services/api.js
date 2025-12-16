@@ -1,7 +1,7 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
-  timeout: 10000,
-})
+  baseURL: import.meta.env.VITE_AMADEUS_BASE_URL,
+});
 
-export default api
+export default api;

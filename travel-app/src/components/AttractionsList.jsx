@@ -1,53 +1,86 @@
 import React, { useEffect, useState } from "react";
 import { getPixabayImage } from "../services/pixabayService";
 
-const mockAttractions = [
-  "Museum",
-  "Park",
-  "Beach",
-  "Historic Site",
-  "Shopping District",
-  "Zoo",
+const ATTRACTIONS = [
+  {
+    name: "Museum",
+    description: "Discover history, culture, and art from around the world.",
+  },
+  {
+    name: "Park",
+    description: "Relax in beautiful green spaces and nature reserves.",
+  },
+  {
+    name: "Beach",
+    description: "Enjoy sunshine, sand, and ocean views.",
+  },
+  {
+    name: "Historic Site",
+    description: "Explore landmarks rich in history and heritage.",
+  },
+  {
+    name: "Shopping District",
+    description: "Shop local markets and modern malls.",
+  },
+  {
+    name: "Zoo",
+    description: "Experience wildlife and conservation centers.",
+  },
 ];
 
 export default function AttractionsList({ city }) {
   const [images, setImages] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!city) return;
+
     async function loadImages() {
-      const imgs = {};
-      for (const attraction of mockAttractions) {
-        const img = await getPixabayImage(`${city} ${attraction}`);
-        imgs[attraction] = img;
+      setLoading(true);
+      const result = {};
+
+      for (const attraction of ATTRACTIONS) {
+        const img = await getPixabayImage(
+          `${city} ${attraction.name}`
+        );
+        result[attraction.name] = img;
       }
-      setImages(imgs);
+
+      setImages(result);
+      setLoading(false);
     }
 
     loadImages();
   }, [city]);
 
-  function handleClick(attraction) {
-    alert(`Explore more about ${attraction} in ${city}`);
+  if (loading) {
+    return (
+      <div className="grid md:grid-cols-3 gap-6 animate-pulse">
+        {ATTRACTIONS.map((_, i) => (
+          <div key={i} className="h-48 bg-gray-300 rounded-lg" />
+        ))}
+      </div>
+    );
   }
 
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-      {mockAttractions.map((attr) => (
+      {ATTRACTIONS.map((attr) => (
         <div
-          key={attr}
-          onClick={() => handleClick(attr)}
-          className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden cursor-pointer transform transition-transform hover:-translate-y-2 hover:shadow-lg duration-300"
+          key={attr.name}
+          className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
         >
-          {images[attr] && (
+          {images[attr.name] && (
             <img
-              src={images[attr]}
-              alt={attr}
+              src={images[attr.name]}
+              alt={attr.name}
               className="w-full h-40 object-cover"
             />
           )}
+
           <div className="p-4">
-            <h3 className="font-semibold text-lg">{attr}</h3>
-            <p className="text-gray-600 text-sm">Explore the best of {attr} in {city}</p>
+            <h3 className="font-semibold text-lg">{attr.name}</h3>
+            <p className="text-sm text-gray-600">{attr.description}</p>
           </div>
         </div>
       ))}
