@@ -1,28 +1,52 @@
-import React from "react";
+const HOTELS = [
+  {
+    name: "Grand Palace Hotel",
+    price: 120,
+    rating: 4.5,
+    image:
+      "https://images.unsplash.com/photo-1566073771259-6a8506099945",
+  },
+  {
+    name: "City View Inn",
+    price: 80,
+    rating: 4.1,
+    image:
+      "https://images.unsplash.com/photo-1501117716987-c8e1ecb210b7",
+  },
+];
 
 export default function HotelsList({ city }) {
   return (
-    <div className="bg-white rounded-lg shadow border p-6">
-      <h3 className="text-xl font-bold mb-2">Hotels in {city}</h3>
-      <p className="text-gray-600 text-sm">
-        Hotel listings will appear here.
-      </p>
+    <section className="space-y-4">
+      <h2 className="text-2xl font-bold">🏨 Hotels in {city}</h2>
 
-      <div className="mt-4 grid sm:grid-cols-2 gap-4">
-        {[1, 2].map((i) => (
+      <div className="grid md:grid-cols-2 gap-6">
+        {HOTELS.map((h, i) => (
           <div
             key={i}
-            className="border rounded p-3 flex flex-col gap-1"
+            className="bg-white rounded-lg shadow hover:shadow-xl overflow-hidden"
           >
-            <div className="h-32 bg-gray-200 rounded"></div>
-            <h4 className="font-semibold mt-2">Hotel Name</h4>
-            <p className="text-xs text-gray-500">★★★★☆</p>
-            <span className="text-sm font-bold text-green-600">
-              From $120 / night
-            </span>
+            <img
+              src={h.image}
+              className="h-40 w-full object-cover"
+            />
+
+            <div className="p-4 space-y-2">
+              <h3 className="font-semibold text-lg">{h.name}</h3>
+              <div className="text-yellow-500">
+                ⭐ {h.rating}
+              </div>
+              <div className="text-gray-600">
+                From ${h.price}/night
+              </div>
+
+              <button className="mt-2 w-full bg-green-600 text-white py-2 rounded">
+                Book Now
+              </button>
+            </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

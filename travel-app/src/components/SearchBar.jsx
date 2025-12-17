@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { searchCountries } from "../services/countryService";
+import { searchLocations } from "../services/locationService";
 import useDebounce from "../hooks/useDebounce";
 
 export default function SearchBar() {
@@ -11,47 +11,59 @@ export default function SearchBar() {
 
   useEffect(() => {
     async function load() {
-      if (!debounced || debounced.length < 2) {
+      if (debounced.length < 3) {
         setResults([]);
         return;
       }
-
-      const data = await searchCountries(debounced);
-      setResults(data.slice(0, 6));
+      setResults(await searchLocations(debounced));
     }
-
     load();
   }, [debounced]);
 
-  function handleSelect(country) {
-    navigate(`/destination/${country.code}`);
+  function handleSelect(item) {
+    if (item.type === "country") {
+      navigate(`/destination/${item.code}`);
+    } else {
+      navigate(`/destination/${item.country}/${item.name}`);
+    }
     setResults([]);
     setTerm("");
   }
 
   return (
-    <div className="relative w-full max-w-md">
-      <input
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        placeholder="Search country..."
-        className="w-full border rounded px-4 py-2 focus:outline-none focus:ring"
-      />
+    <div className="relative max-w-lg">
+      <div className="flex gap-2">
+        <input
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          placeholder="Search country or city..."
+          className="flex-1 border rounded px-4 py-2"
+        />
+        <button className="bg-blue-600 text-white px-4 rounded">
+          Search
+        </button>
+      </div>
 
       {results.length > 0 && (
-        <ul className="absolute z-10 mt-1 w-full bg-white border rounded shadow">
-          {results.map((c) => (
+        <ul className="absolute z-10 bg-white w-full mt-1 border rounded shadow">
+          {results.map((r, i) => (
             <li
-              key={c.code}
-              onClick={() => handleSelect(c)}
-              className="px-4 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+              key={i}
+              onClick={() => handleSelect(r)}
+              className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
             >
-              <img
-                src={c.flag}
-                alt={c.name}
-                className="w-6 h-4 object-cover"
-              />
-              <span>{c.name}</span>
+              {r.type === "country" && (
+                <>
+                  <img src={r.flag} className="w-6 h-4" />
+                  <span>{r.name}</span>
+                </>
+              )}
+
+              {r.type === "city" && (
+                <span>
+                  📍 {r.name}, <span className="text-gray-500">{r.country}</span>
+                </span>
+              )}
             </li>
           ))}
         </ul>

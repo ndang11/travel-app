@@ -1,35 +1,47 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { getForecast } from "../services/weatherService";
 
-export default function ForecastWidget({ lat, lon }) {
+export default function ForecastWidget({ coords }) {
   const [forecast, setForecast] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!lat || !lon) return;
-    getForecast(lat, lon).then(setForecast);
-  }, [lat, lon]);
+    if (!coords) return;
 
-  if (!forecast) return null;
+    async function fetchForecast() {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await getForecast(coords.lat, coords.lon);
+        setForecast(data);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to fetch forecast");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchForecast();
+  }, [coords]);
+
+  if (!coords) return <div>No coordinates provided for forecast.</div>;
+  if (loading) return <div>Loading forecast...</div>;
+  if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      {forecast.daily.slice(0, 7).map((day, i) => (
-        <div
-          key={i}
-          className="bg-white rounded-lg shadow p-3 text-center"
-        >
-          <p className="text-sm font-semibold">
-            {new Date(day.dt * 1000).toLocaleDateString("en-US", { weekday: "short" })}
-          </p>
-          <img
-            className="mx-auto"
-            src={`https://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`}
-          />
-          <p className="text-sm text-gray-600">
-            {Math.round(day.temp.min)}° / {Math.round(day.temp.max)}°
-          </p>
-        </div>
-      ))}
+    <div className="forecast-widget">
+      <h4>7-Day Forecast</h4>
+      <div className="forecast-days">
+        {forecast.daily.slice(0, 7).map((day, idx) => (
+          <div key={idx} className="forecast-day">
+            <p>{new Date(day.dt * 1000).toLocaleDateString()}</p>
+            <p>{day.weather[0].description}</p>
+            <p>{Math.round(day.temp.day)}°C</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
