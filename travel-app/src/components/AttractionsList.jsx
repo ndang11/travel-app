@@ -4,28 +4,28 @@ import { getPixabayImage } from "../services/pixabayService";
 const ATTRACTIONS = [
   {
     name: "Museum",
-    description: "Discover history, culture, and art from around the world.",
+    description: "Discover art, history, and culture."
   },
   {
     name: "Park",
-    description: "Relax in beautiful green spaces and nature reserves.",
+    description: "Relax in beautiful green spaces."
   },
   {
     name: "Beach",
-    description: "Enjoy sunshine, sand, and ocean views.",
+    description: "Enjoy sun, sand, and sea."
   },
   {
     name: "Historic Site",
-    description: "Explore landmarks rich in history and heritage.",
+    description: "Explore historical landmarks."
   },
   {
     name: "Shopping District",
-    description: "Shop local markets and modern malls.",
+    description: "Shop local and international brands."
   },
   {
     name: "Zoo",
-    description: "Experience wildlife and conservation centers.",
-  },
+    description: "Meet wildlife and exotic animals."
+  }
 ];
 
 export default function AttractionsList({ city }) {
@@ -37,16 +37,18 @@ export default function AttractionsList({ city }) {
 
     async function loadImages() {
       setLoading(true);
-      const result = {};
+      const results = {};
 
       for (const attraction of ATTRACTIONS) {
-        const img = await getPixabayImage(
-          `${city} ${attraction.name}`
-        );
-        result[attraction.name] = img;
+        try {
+          const img = await getPixabayImage(`${city} ${attraction.name}`);
+          results[attraction.name] = img;
+        } catch {
+          results[attraction.name] = null;
+        }
       }
 
-      setImages(result);
+      setImages(results);
       setLoading(false);
     }
 
@@ -57,7 +59,7 @@ export default function AttractionsList({ city }) {
     return (
       <div className="grid md:grid-cols-3 gap-6 animate-pulse">
         {ATTRACTIONS.map((_, i) => (
-          <div key={i} className="h-48 bg-gray-300 rounded-lg" />
+          <div key={i} className="h-48 bg-gray-300 rounded-lg"></div>
         ))}
       </div>
     );
@@ -65,22 +67,25 @@ export default function AttractionsList({ city }) {
 
   return (
     <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-      {ATTRACTIONS.map((attr) => (
+      {ATTRACTIONS.map(({ name, description }) => (
         <div
-          key={attr.name}
-          className="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden"
+          key={name}
+          className="bg-white rounded-lg shadow border overflow-hidden hover:shadow-xl transition"
         >
-          {images[attr.name] && (
+          {images[name] && (
             <img
-              src={images[attr.name]}
-              alt={attr.name}
-              className="w-full h-40 object-cover"
+              src={images[name]}
+              alt={name}
+              className="h-40 w-full object-cover"
             />
           )}
 
           <div className="p-4">
-            <h3 className="font-semibold text-lg">{attr.name}</h3>
-            <p className="text-sm text-gray-600">{attr.description}</p>
+            <h3 className="font-bold text-lg">{name}</h3>
+            <p className="text-sm text-gray-600 mt-1">{description}</p>
+            <button className="mt-3 text-blue-600 text-sm font-semibold hover:underline">
+              Explore →
+            </button>
           </div>
         </div>
       ))}

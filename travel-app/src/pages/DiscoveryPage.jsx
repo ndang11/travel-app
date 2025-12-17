@@ -1,5 +1,7 @@
 import React from "react";
 import SearchBar from "../components/SearchBar";
+import AttractionsList from "../components/AttractionsList";
+import WeatherBadge from "../components/WeatherBadge";
 
 export default function DiscoveryPage() {
   return (
@@ -11,6 +13,10 @@ export default function DiscoveryPage() {
 
       <section>
         <SearchBar />
+      </section>
+      <section>
+        <AttractionsList />
+        <WeatherBadge />
       </section>
     </div>
   );

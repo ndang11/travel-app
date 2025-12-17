@@ -1,41 +1,44 @@
-import React, { useEffect, useState } from "react";
-import { getWeather } from "../services/weatherService";
+import { useEffect, useState } from "react";
+import {
+  getWeatherByCity,
+  getWeatherByCoords,
+} from "../services/weatherService";
 
-export default function WeatherCard({ lat, lon }) {
+export default function WeatherCard({ city, lat, lon }) {
   const [weather, setWeather] = useState(null);
 
   useEffect(() => {
-    if (!lat || !lon) return;
-
     async function fetchWeather() {
-      const data = await getWeather(lat, lon);
+      let data = null;
+
+      if (lat && lon) {
+        data = await getWeatherByCoords(lat, lon);
+      } else if (city) {
+        data = await getWeatherByCity(city);
+      }
+
       setWeather(data);
     }
 
     fetchWeather();
-  }, [lat, lon]);
+  }, [city, lat, lon]);
 
   if (!weather) {
-    return (
-      <div className="border rounded p-4">
-        <p>Loading weather...</p>
-      </div>
-    );
+    return <div className="text-sm text-gray-500">Weather unavailable</div>;
   }
 
   return (
-    <div className="border rounded p-4">
-      <h3 className="font-semibold text-lg">
-        {weather.name} Weather
-      </h3>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-lg font-semibold">{weather.name}</p>
+        <p className="text-sm text-gray-600 capitalize">
+          {weather.weather[0].description}
+        </p>
+      </div>
 
-      <p className="text-gray-600 capitalize">
-        {weather.weather[0].description}
-      </p>
-
-      <p className="text-2xl font-bold">
+      <div className="text-3xl font-bold">
         {Math.round(weather.main.temp)}°C
-      </p>
+      </div>
     </div>
   );
 }

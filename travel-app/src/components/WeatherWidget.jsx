@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { getCurrentWeather } from "../services/weatherService";
+import { useEffect, useState } from "react";
+import { getWeatherByCity } from "../services/weatherService";
 
 export default function WeatherWidget({ city }) {
   const [weather, setWeather] = useState(null);
@@ -7,21 +7,28 @@ export default function WeatherWidget({ city }) {
   useEffect(() => {
     if (!city) return;
 
-    const fetchWeather = async () => {
-      const data = await getCurrentWeather(city);
+    async function loadWeather() {
+      const data = await getWeatherByCity(city);
       setWeather(data);
-    };
+    }
 
-    fetchWeather();
+    loadWeather();
   }, [city]);
 
-  if (!weather) return <p>Loading weather...</p>;
+  if (!weather) {
+    return (
+      <div className="px-3 py-1 rounded-full bg-gray-200 text-xs">
+        Weather unavailable
+      </div>
+    );
+  }
 
   return (
-    <div className="border rounded p-4 mb-4">
-      <h3 className="font-bold text-lg">{weather.name}</h3>
-      <p>{weather.weather[0].description}</p>
-      <p>{weather.main.temp}°C</p>
+    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm">
+      <span>{weather.name}</span>
+      <span className="font-semibold">
+        {Math.round(weather.main.temp)}°C
+      </span>
     </div>
   );
 }
