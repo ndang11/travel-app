@@ -72,14 +72,16 @@ export default function Home() {
       >
         <div className="absolute inset-0 bg-black/50"></div>
 
-        <div className="relative z-10 space-y-6 max-w-3xl">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-blue-600">
-            Adventure Like Never Before
+        <div className="relative z-10 space-y-6 max-w-4xl w-full">
+          <h1 className="text-7xl md:text-8xl lg:text-9xl font-extrabold text-blue-600 leading-tight">
+            Adventure Like Never Before<br />
+            <span className="text-red-500">Plan Smarter, Travel Better</span>
           </h1>
 
           <p className="text-gray-200 text-lg">
-            Explore destinations, attractions, weather, airports, currency, and
-            everything you need to plan your perfect trip.
+            {/* Explore destinations, attractions, weather, airports, currency, and
+            everything you need to plan your perfect trip. */}
+            Discover the world’s wonders, plan your dream trip, and travel smarter with our all-in-one travel app.
           </p>
 
           <Link to="/discovery">
