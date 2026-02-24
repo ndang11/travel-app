@@ -15,42 +15,45 @@ function getWeatherIcon(condition) {
 }
 
 // Get day name from date
-function getDayName(date) {
-  const d = new Date(date * 1000);
+function getDayName(dt) {
+  if (!dt) return "";
+  const d = new Date(dt * 1000);
   const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  if (d.toDateString() === today.toDateString()) return "Today";
-  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  const diff = Math.round((d - today) / (1000 * 60 * 60 * 24));
+  
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
   return d.toLocaleDateString("en-US", { weekday: "short" });
 }
 
 // Short date format
-function getShortDate(date) {
-  return new Date(date * 1000).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+function getShortDate(dt) {
+  if (!dt) return "";
+  const d = new Date(dt * 1000);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 export default function ForecastWidget({ lat, lon }) {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!lat || !lon) return;
+    if (!lat || !lon) {
+      setLoading(false);
+      return;
+    }
 
     async function fetchForecast() {
       setLoading(true);
-      setError("");
+      setError(null);
+      
       try {
         const data = await getForecast(lat, lon);
         setForecast(data);
       } catch (err) {
-        console.error(err);
-        setError("Unable to load forecast");
+        console.error("Forecast fetch error:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -61,9 +64,8 @@ export default function ForecastWidget({ lat, lon }) {
 
   if (!lat || !lon) {
     return (
-      <div className="text-center py-8 text-slate-500">
-        <span className="text-2xl">📍</span>
-        <p className="mt-2">No location data available</p>
+      <div className="text-center py-4 text-gray-500">
+        <p>No location data</p>
       </div>
     );
   }
@@ -72,10 +74,10 @@ export default function ForecastWidget({ lat, lon }) {
     return (
       <div className="grid grid-cols-7 gap-2">
         {[...Array(7)].map((_, i) => (
-          <div key={i} className="text-center p-3">
-            <div className="h-4 w-10 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
-            <div className="h-8 w-8 bg-slate-200 rounded-full animate-pulse mx-auto mb-2" />
-            <div className="h-5 w-12 bg-slate-200 rounded animate-pulse mx-auto" />
+          <div key={i} className="text-center p-2">
+            <div className="h-3 w-8 bg-gray-200 rounded animate-pulse mx-auto mb-2" />
+            <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse mx-auto mb-2" />
+            <div className="h-4 w-10 bg-gray-200 rounded animate-pulse mx-auto" />
           </div>
         ))}
       </div>
@@ -84,70 +86,41 @@ export default function ForecastWidget({ lat, lon }) {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center gap-3 py-8 text-red-500">
-        <span className="text-2xl">⚠️</span>
-        <p>{error}</p>
+      <div className="text-center py-4 text-gray-500">
+        <p>Unable to load forecast</p>
+        <p className="text-xs text-gray-400 mt-1">{error}</p>
       </div>
     );
   }
 
-  const dailyForecast = forecast.daily?.slice(0, 7) || [];
+  if (!forecast || !forecast.daily || forecast.daily.length === 0) {
+    return (
+      <div className="text-center py-4 text-gray-500">
+        <p>No forecast data available</p>
+      </div>
+    );
+  }
+
+  const dailyForecast = forecast.daily.slice(0, 7);
 
   return (
-    <div className="overflow-x-auto -mx-2 px-2">
+    <div className="overflow-x-auto">
       <div className="flex gap-2 min-w-max">
         {dailyForecast.map((day, idx) => (
           <div
             key={idx}
-            className={`flex flex-col items-center p-3 rounded-xl transition-all hover:scale-105 ${
-              idx === 0
-                ? "bg-white/20 text-white"
-                : "bg-white/10 text-white/90 hover:bg-white/20"
+            className={`flex flex-col items-center p-2 rounded-lg min-w-[60px] ${
+              idx === 0 ? "bg-white/30" : "bg-white/10 hover:bg-white/20"
             }`}
           >
-            {/* Day Name */}
-            <p className="text-xs font-medium mb-1">
-              {getDayName(day.dt)}
-            </p>
-            <p className="text-[10px] opacity-70 mb-2">
-              {getShortDate(day.dt)}
-            </p>
-
-            {/* Weather Icon */}
-            <div className="text-3xl mb-2 filter drop-shadow-md">
-              {getWeatherIcon(day.weather?.[0]?.main)}
-            </div>
-
-            {/* Temperature */}
-            <div className="text-center">
-              <p className="text-lg font-bold">{Math.round(day.temp.day)}°</p>
-              <div className="flex items-center justify-center gap-1 text-xs opacity-80">
-                <span>↑{Math.round(day.temp.max)}°</span>
-                <span>↓{Math.round(day.temp.min)}°</span>
-              </div>
-            </div>
-
-            {/* Additional Info */}
-            {day.humidity && (
-              <div className="mt-2 text-[10px] opacity-70 flex items-center gap-1">
-                <span>💧</span>
-                <span>{day.humidity}%</span>
-              </div>
-            )}
+            <p className="text-xs font-medium">{getDayName(day.dt)}</p>
+            <p className="text-[10px] opacity-70">{getShortDate(day.dt)}</p>
+            <span className="text-2xl my-1">{getWeatherIcon(day.weather?.[0]?.main)}</span>
+            <p className="text-sm font-bold">{Math.round(day.temp?.day || 0)}°</p>
+            <p className="text-[10px] opacity-70">↓{Math.round(day.temp?.min || 0)}°</p>
           </div>
         ))}
       </div>
-
-      {/* Summary */}
-      {forecast.daily && forecast.daily[0] && (
-        <div className="mt-4 pt-4 border-t border-white/20">
-          <p className="text-sm text-white/80 text-center">
-            {forecast.daily[0].weather?.[0]?.description
-              ? `Today: ${forecast.daily[0].weather[0].description.charAt(0).toUpperCase() + forecast.daily[0].weather[0].description.slice(1)}`
-              : "7-day forecast loaded"}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

@@ -37,7 +37,7 @@ function HotelCard({ hotel }) {
         {/* Price Tag */}
         <div className="absolute bottom-3 left-3">
           <span className="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm font-bold">
-            From ${hotel.price || "120"}/night
+            From ${typeof hotel.price === 'object' ? hotel.price.amount : hotel.price || "120"}/night
           </span>
         </div>
       </div>
