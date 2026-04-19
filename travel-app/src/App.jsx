@@ -15,7 +15,7 @@ export default function App() {
     <Router>
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-[1370px] mx-auto px-5 py-6">
         <Routes>
           <Route path="/" element={<Home />} />
          <Route path="/discovery" element={<DiscoveryPage />} />
@@ -23,7 +23,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/search" element={<SearchResult />} />
-          <Route path="/destination/:code" element={<DestinationPage />} />
+          <Route path="/destination/:code/:city?" element={<DestinationPage />} />
         </Routes>
       </main>
 

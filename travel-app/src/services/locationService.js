@@ -11,7 +11,6 @@ export async function searchLocations(query) {
   const results = [];
   const seenNames = new Set();
 
-  // Search countries (always works - free API)
   try {
     const res = await fetch(`${COUNTRIES_BASE}/name/${safeQuery}?limit=5`);
     if (res.ok) {
@@ -33,7 +32,6 @@ export async function searchLocations(query) {
     }
   } catch {}
 
-  // Search cities using API Ninjas
   let citiesFound = false;
   if (API_KEY) {
     try {
@@ -62,10 +60,11 @@ export async function searchLocations(query) {
           });
         }
       }
-    } catch {}
+    } catch (err) {
+      console.log("City search unavailable:", err.message);
+    }
   }
 
-  // Fallback: Use Geoapify if API Ninjas didn't work
   if (!citiesFound && GEOAPIFY_KEY) {
     try {
       const res = await fetch(

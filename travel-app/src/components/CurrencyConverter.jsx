@@ -1,33 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { getExchangeRate, detectUserCurrency } from "../services/currencyService";
 
-// Currency data with flags and names
-const CURRENCIES = [
-  { code: "USD", flag: "🇺🇸", name: "US Dollar" },
-  { code: "EUR", flag: "🇪🇺", name: "Euro" },
-  { code: "GBP", flag: "🇬🇧", name: "British Pound" },
-  { code: "CAD", flag: "🇨🇦", name: "Canadian Dollar" },
-  { code: "NGN", flag: "🇳🇬", name: "Nigerian Naira" },
-  { code: "XAF", flag: "🇨🇲", name: "CFA Franc" },
-  { code: "ZAR", flag: "🇿🇦", name: "South African Rand" },
-  { code: "JPY", flag: "🇯🇵", name: "Japanese Yen" },
-  { code: "CNY", flag: "🇨🇳", name: "Chinese Yuan" },
-  { code: "AUD", flag: "🇦🇺", name: "Australian Dollar" },
-  { code: "CHF", flag: "🇨🇭", name: "Swiss Franc" },
-  { code: "INR", flag: "🇮🇳", name: "Indian Rupee" },
+const SUPPORTED = [
+  { code: "USD", name: "US Dollar", flag: "🇺🇸" },
+  { code: "EUR", name: "Euro", flag: "🇪🇺" },
+  { code: "GBP", name: "British Pound", flag: "🇬🇧" },
+  { code: "CAD", name: "Canadian Dollar", flag: "🇨🇦" },
+  { code: "AUD", name: "Australian Dollar", flag: "🇦🇺" },
+  { code: "JPY", name: "Japanese Yen", flag: "🇯🇵" },
+  { code: "CNY", name: "Chinese Yuan", flag: "🇨🇳" },
+  { code: "INR", name: "Indian Rupee", flag: "🇮🇳" },
+  { code: "SGD", name: "Singapore Dollar", flag: "🇸🇬" },
 ];
 
-// Get currency flag/name from code
-function getCurrencyInfo(code) {
-  return CURRENCIES.find((c) => c.code === code) || { code, flag: "💱", name: code };
-}
+const CURRENCY_SYMBOLS = {
+  USD: "$", EUR: "€", GBP: "£", CAD: "C$", AUD: "A$", 
+  JPY: "¥", CNY: "¥", INR: "₹", SGD: "S$", NGN: "₦", 
+  ZAR: "R", CHF: "CHF", THB: "฿", MXN: "MX$", BRL: "R$"
+};
 
 export default function CurrencyConverter({ currency }) {
   const [baseCurrency, setBaseCurrency] = useState("USD");
   const [rate, setRate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [swapCurrencies, setSwapCurrencies] = useState(false);
+  const [amount, setAmount] = useState(100);
 
   useEffect(() => {
     setBaseCurrency(detectUserCurrency());
@@ -39,138 +36,110 @@ export default function CurrencyConverter({ currency }) {
         setLoading(true);
         setError(null);
 
-        const from = swapCurrencies ? currency : baseCurrency;
-        const to = swapCurrencies ? baseCurrency : currency;
-
-        const result = await getExchangeRate(from, to);
-
+        const result = await getExchangeRate(baseCurrency, currency);
         if (!result) throw new Error("Rate unavailable");
-
         setRate(result);
       } catch (err) {
-        setError(err.message);
+        setError("Unable to load rates");
       } finally {
         setLoading(false);
       }
     }
 
     if (currency && baseCurrency) fetchRate();
-  }, [currency, baseCurrency, swapCurrencies]);
+  }, [currency, baseCurrency]);
 
-  const baseInfo = getCurrencyInfo(baseCurrency);
-  const targetInfo = getCurrencyInfo(currency);
-
-  // Conversion amounts
-  const amounts = [1, 10, 50, 100, 500];
+  const convertedAmount = (amount * (rate || 0)).toFixed(2);
+  const symbol = CURRENCY_SYMBOLS[currency] || currency;
+  const baseSymbol = CURRENCY_SYMBOLS[baseCurrency] || baseCurrency;
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="h-8 w-24 bg-slate-200 rounded animate-pulse" />
-          <div className="h-8 w-20 bg-slate-200 rounded animate-pulse" />
-        </div>
-        <div className="h-32 bg-slate-100 rounded-xl animate-pulse" />
+      <div className="bg-gray-50 rounded-2xl p-6 animate-pulse">
+        <div className="h-4 bg-gray-300 w-1/2 rounded mb-4" />
+        <div className="h-12 bg-gray-300 rounded" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl p-4 bg-red-50 border border-red-100">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-            <span className="text-lg">⚠️</span>
-          </div>
-          <div>
-            <p className="font-medium text-red-700">Currency unavailable</p>
-            <p className="text-xs text-red-500">Unable to fetch exchange rate</p>
-          </div>
-        </div>
+      <div className="bg-gray-50 rounded-2xl p-6 text-center">
+        <span className="text-4xl block mb-2">💱</span>
+        <p className="text-gray-500">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Currency Selector */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex-1">
-          <label className="text-xs font-medium text-slate-500 mb-1 block">From</label>
-          <select
-            value={baseCurrency}
-            onChange={(e) => setBaseCurrency(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-          >
-            {CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.flag} {c.code} - {c.name}
-              </option>
-            ))}
-          </select>
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <span className="text-sm text-gray-500">From</span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-2xl">
+              {SUPPORTED.find(c => c.code === baseCurrency)?.flag || "🏳️"}
+            </span>
+            <select
+              value={baseCurrency}
+              onChange={(e) => setBaseCurrency(e.target.value)}
+              className="font-bold text-gray-900 bg-transparent border-none outline-none cursor-pointer"
+            >
+              {SUPPORTED.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
-
-        {/* Swap Button */}
-        <button
-          onClick={() => setSwapCurrencies(!swapCurrencies)}
-          className="mt-5 p-2 rounded-full bg-indigo-100 hover:bg-indigo-200 transition-colors"
-          title="Swap currencies"
-        >
-          <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        
+        <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
           </svg>
-        </button>
+        </div>
 
-        <div className="flex-1">
-          <label className="text-xs font-medium text-slate-500 mb-1 block">To</label>
-          <div className="px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium">
-            <span className="mr-1">{targetInfo.flag}</span>
-            <span>{targetInfo.code}</span>
+        <div className="text-right">
+          <span className="text-sm text-gray-500">To</span>
+          <div className="flex items-center gap-2 mt-1 justify-end">
+            <span className="text-2xl">🏳️</span>
+            <span className="font-bold text-gray-900">{currency}</span>
           </div>
         </div>
       </div>
 
-      {/* Main Rate Display */}
-      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border border-indigo-100">
-        <div className="text-center">
-          <p className="text-sm text-slate-600 mb-1">Current Exchange Rate</p>
-          <p className="text-2xl font-bold text-slate-900">
-            1 {baseInfo.code} =
+      <div className="bg-gradient-to-r from-rose-50 to-amber-50 rounded-2xl p-5">
+        <div className="text-center mb-4">
+          <p className="text-gray-500 text-sm">Exchange Rate</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">
+            1 {baseCurrency} = <span className="text-rose-500">{rate?.toFixed(2)} {currency}</span>
           </p>
-          <p className="text-3xl font-black text-indigo-600">
-            {rate.toFixed(2)} {targetInfo.code}
-          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex items-center justify-between bg-white rounded-xl p-3 shadow-sm">
+            <span className="text-gray-500">{baseSymbol}{amount}</span>
+            <span className="text-gray-300">→</span>
+            <span className="font-bold text-gray-900">{symbol}{convertedAmount}</span>
+          </div>
         </div>
       </div>
 
-      {/* Quick Conversions */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-slate-500">Quick conversions</p>
-        <div className="grid grid-cols-2 gap-2">
-          {amounts.map((amount) => (
-            <div
-              key={amount}
-              className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-50 border border-slate-100"
-            >
-              <span className="text-sm text-slate-600">{amount} {baseInfo.code}</span>
-              <span className="text-sm font-semibold text-slate-900">
-                {(amount * rate).toFixed(2)} {targetInfo.code}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Currency Info */}
-      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{baseInfo.flag}</span>
-          <span className="text-sm text-slate-600">{baseInfo.name}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{targetInfo.flag}</span>
-          <span className="text-sm text-slate-600">{targetInfo.name}</span>
-        </div>
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        {[50, 100, 500, 1000].map((val) => (
+          <button
+            key={val}
+            onClick={() => setAmount(val)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              amount === val
+                ? "bg-rose-500 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            {baseSymbol}{val}
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -16,7 +16,6 @@ export default function SearchResults() {
     async function search() {
       try {
         const data = await getCountryByName(query);
-        // Wrap in array if API returns single object
         setResults(Array.isArray(data) ? data : [data]);
       } catch {
         setResults([]);

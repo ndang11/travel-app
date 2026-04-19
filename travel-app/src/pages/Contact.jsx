@@ -1,199 +1,195 @@
 import { useState } from "react";
-import { Icons } from "../components/Icons";
+import { Link } from "react-router-dom";
+
+const CONTACTS = [
+  { icon: "📧", title: "Email", value: "royaltyhopsin@gmail.com", desc: "We'll respond within 24 hours" },
+  { icon: "📞", title: "Phone", value: "+237 676062793", desc: "Mon-Fri, 9AM-6PM EST" },
+  { icon: "📍", title: "Headquarters", value: "Cameroon, Africa", desc: "Global team, anywhere access" },
+];
+
+const FAQ = [
+  { q: "How do I book a trip?", a: "Simply select your destination, choose dates, and complete our easy booking form." },
+  { q: "Is my payment secure?", a: "Yes! We use industry-standard encryption to keep your payment information safe." },
+  { q: "Can I cancel my booking?", a: "Yes, most bookings can be cancelled up to 48 hours before check-in for a full refund." },
+  { q: "Do you offer group discounts?", a: "Contact us directly for group bookings of 10+ travelers for special rates." },
+];
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: ""
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Simulate form submission
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12">
-      {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-100 rounded-full mb-6">
-          <Icons.envelope />
+    <div className="min-h-screen bg-gray-50">
+      <section className="relative py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 right-10 w-72 h-72 bg-rose-500 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 left-10 w-96 h-96 bg-amber-500 rounded-full blur-3xl" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Contact Us</h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Have questions, suggestions, or need help planning your trip? 
-          We'd love to hear from you. Our team is here to help!
-        </p>
-      </div>
+        
+        <div className="relative max-w-4xl mx-auto text-center">
+          <span className="inline-block px-4 py-2 bg-rose-500/20 text-rose-400 font-semibold rounded-full text-sm mb-6">
+            Get in Touch
+          </span>
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
+            We'd Love to <span className="text-rose-400">Hear From You</span>
+          </h1>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            Have questions? Our team is here to help you plan your perfect adventure.
+          </p>
+        </div>
+      </section>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Contact Form */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Send us a Message</h2>
-          
-          {submitted ? (
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Message Sent!</h3>
-              <p className="text-gray-600">Thank you for reaching out. We'll get back to you soon.</p>
+      <section className="max-w-5xl mx-auto px-4 -mt-16">
+        <div className="grid md:grid-cols-3 gap-6">
+          {CONTACTS.map((contact, idx) => (
+            <div key={idx} className="bg-white rounded-3xl shadow-xl p-6 text-center hover:shadow-2xl transition-shadow">
+              <span className="text-4xl block mb-4">{contact.icon}</span>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">{contact.title}</h3>
+              <p className="text-rose-500 font-semibold mb-1">{contact.value}</p>
+              <p className="text-gray-500 text-sm">{contact.desc}</p>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject
-                </label>
-                <select
-                  id="subject"
-                  name="subject"
-                  value={formData.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-                >
-                  <option value="">Select a topic</option>
-                  <option value="general">General Inquiry</option>
-                  <option value="support">Technical Support</option>
-                  <option value="partnership">Partnership</option>
-                  <option value="feedback">Feedback</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={5}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors resize-none"
-                  placeholder="Tell us how we can help you..."
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-200 transition-colors"
-              >
-                Send Message
-              </button>
-            </form>
-          )}
+          ))}
         </div>
+      </section>
 
-        {/* Contact Information */}
-        <div className="space-y-6">
-          {/* Contact Cards */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Get in Touch</h2>
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <div className="grid lg:grid-cols-2 gap-12">
+          <div className="bg-white rounded-3xl shadow-xl p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+              <span className="text-2xl">💬</span> Send us a Message
+            </h2>
             
-            <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icons.envelope />
+            {submitted ? (
+              <div className="text-center py-12">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-4xl">✅</span>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Email</h3>
-                  <p className="text-gray-600">royaltyhopsin@gmail.com</p>
-                  <p className="text-sm text-gray-500">We'll reply within 24 hours</p>
-                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+                <p className="text-gray-600">We'll get back to you soon.</p>
               </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Your Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-rose-500 outline-none transition-colors"
+                      placeholder="John Doe"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-rose-500 outline-none transition-colors"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+                  <select
+                    required
+                    value={formData.subject}
+                    onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-rose-500 outline-none transition-colors"
+                  >
+                    <option value="">Select a topic</option>
+                    <option value="general">General Inquiry</option>
+                    <option value="booking">Booking Support</option>
+                    <option value="partnership">Partnership</option>
+                    <option value="feedback">Feedback</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icons.phone />
-                </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Phone</h3>
-                  <p className="text-gray-600">+237 676062793</p>
-                  <p className="text-sm text-gray-500">Mon-Fri, 9am-6pm WAT</p>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Message</label>
+                  <textarea
+                    required
+                    rows="5"
+                    value={formData.message}
+                    onChange={(e) => setFormData({...formData, message: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-rose-500 outline-none transition-colors resize-none"
+                    placeholder="How can we help you?"
+                  />
                 </div>
-              </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Icons.buildingOffice />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900">Office</h3>
-                  <p className="text-gray-600">123 Travel Street</p>
-                  <p className="text-gray-600">Adventure City, World</p>
-                </div>
-              </div>
-            </div>
+                <button
+                  type="submit"
+                  className="w-full py-4 bg-gradient-to-r from-rose-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg transition-all hover:scale-[1.02]"
+                >
+                  Send Message 🚀
+                </button>
+              </form>
+            )}
           </div>
 
-          {/* FAQ Section */}
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl p-8 text-white">
-            <h2 className="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <span className="text-2xl">❓</span> Frequently Asked Questions
+            </h2>
+            
             <div className="space-y-4">
-              <div>
-                <h3 className="font-medium mb-1">How do I book a trip?</h3>
-                <p className="text-sm text-indigo-100">Simply search for your destination, browse hotels and attractions, and book directly through our platform.</p>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">Is my payment secure?</h3>
-                <p className="text-sm text-indigo-100">Yes! We use industry-standard encryption to protect your payment information.</p>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">Can I cancel my booking?</h3>
-                <p className="text-sm text-indigo-100">Most bookings can be cancelled with a full refund. Check the specific cancellation policy for your booking.</p>
+              {FAQ.map((item, idx) => (
+                <div key={idx} className="bg-white rounded-2xl shadow-md overflow-hidden">
+                  <details className="group">
+                    <summary className="p-6 cursor-pointer flex items-center justify-between font-semibold text-gray-900">
+                      {item.q}
+                      <span className="text-rose-500 group-open:rotate-180 transition-transform">▼</span>
+                    </summary>
+                    <div className="px-6 pb-6 text-gray-600">
+                      {item.a}
+                    </div>
+                  </details>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-gradient-to-br from-rose-500 to-amber-500 rounded-2xl p-6 text-white">
+              <h3 className="text-xl font-bold mb-4">Need Immediate Help?</h3>
+              <p className="text-white/90 mb-4">Check our help center or browse popular destinations</p>
+              <div className="flex flex-col gap-3">
+                <Link to="/discovery" className="px-4 py-2 bg-white/20 rounded-lg text-center hover:bg-white/30 transition">
+                  Browse Destinations
+                </Link>
+                <Link to="/booking" className="px-4 py-2 bg-white/20 rounded-lg text-center hover:bg-white/30 transition">
+                  Make a Booking
+                </Link>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="py-8 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div className="h-64 bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+              <div className="text-center">
+                <span className="text-6xl block mb-4">🌍</span>
+                <p className="text-gray-600 font-medium">Global Support, Everywhere</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

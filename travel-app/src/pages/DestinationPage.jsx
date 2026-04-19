@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import AttractionsList from "../components/AttractionsList";
-import { getCountryByCode } from "../services/countryService";
+import { getCountryByCode, getCountryByName } from "../services/countryService";
 import AirportInfo from "../components/AirportInfo";
 import FavoriteButton from "../components/FavoriteButton";
 import MapView from "../components/MapView";
@@ -10,38 +10,58 @@ import CurrencyConverter from "../components/CurrencyConverter";
 import LanguageInfo from "../components/LanguageInfo";
 import HotelsList from "../components/HotelsList";
 import ForecastWidget from "../components/ForecastWidget";
-import Icons from "../components/Icons";
+import { getPixabayImage } from "../services/pixabayService";
 
 export default function DestinationPage() {
   const { code, city } = useParams();
   const [country, setCountry] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [heroImage, setHeroImage] = useState(null);
 
   useEffect(() => {
     async function fetchCountry() {
+      if (!code || code === "undefined") return;
+      
       try {
         setLoading(true);
-        const data = await getCountryByCode(code);
+        let data = null;
+        
+        if (city) {
+          data = await getCountryByName(code);
+        } else if (code) {
+          data = await getCountryByCode(code);
+        }
+        
+        if (!data) {
+          data = await getCountryByName(code);
+        }
+        
         setCountry(data);
+        if (data) {
+          const img = await getPixabayImage(data.capital?.[0] || data.name.common);
+          setHeroImage(img);
+        }
       } catch (error) {
         console.error("Country fetch error:", error);
       } finally {
         setLoading(false);
       }
     }
-    if (code) fetchCountry();
-  }, [code]);
+    if (code && code !== "undefined") fetchCountry();
+  }, [code, city]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-          <div className="h-64 bg-gray-200 rounded-2xl animate-pulse"></div>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="h-24 bg-gray-200 rounded-xl animate-pulse"></div>
-            <div className="h-24 bg-gray-200 rounded-xl animate-pulse"></div>
-            <div className="h-24 bg-gray-200 rounded-xl animate-pulse"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="animate-pulse">
+          <div className="h-96 bg-gray-300" />
+          <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+            <div className="h-10 bg-gray-300 w-1/3 rounded" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="h-64 bg-gray-300 rounded-2xl" />
+              <div className="h-64 bg-gray-300 rounded-2xl" />
+              <div className="h-64 bg-gray-300 rounded-2xl" />
+            </div>
           </div>
         </div>
       </div>
@@ -50,120 +70,213 @@ export default function DestinationPage() {
 
   if (!country) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Country Not Found</h2>
-          <Link to="/" className="text-indigo-600 hover:underline">Go Home</Link>
+          <span className="text-6xl block mb-4">🗺️</span>
+          <p className="text-gray-600 text-xl font-semibold">Destination not found</p>
+          <Link to="/discovery" className="mt-4 inline-block text-rose-500 hover:underline">
+            Browse destinations
+          </Link>
         </div>
       </div>
     );
   }
 
-  const currencyCode = country.currencies ? Object.keys(country.currencies)[0] : "USD";
+  const currencyCode = country.currencies
+    ? Object.keys(country.currencies)[0]
+    : "USD";
+  
   const displayCity = city || country.capital?.[0] || country.name.common;
-  const flags = country.flags?.svg || country.flags?.png;
+  const population = country.population?.toLocaleString() || "N/A";
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-5xl mx-auto px-6 py-4">
-          <nav className="flex items-center gap-2 text-sm text-gray-500">
-            <Link to="/" className="hover:text-indigo-600">Home</Link>
-            <Icons.chevronRight />
-            <Link to="/discovery" className="hover:text-indigo-600">Discovery</Link>
-            <Icons.chevronRight />
-            <span className="text-gray-900 font-medium">{country.name.common}</span>
-          </nav>
+      <div className="relative h-[50vh] min-h-[400px]">
+        {heroImage && (
+          <img 
+            src={heroImage} 
+            alt={country.name.common}
+            className="w-full h-full object-cover"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+        
+        <div className="absolute top-4 left-4">
+          <Link 
+            to="/discovery" 
+            className="flex items-center gap-2 text-white/90 hover:text-white bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </Link>
         </div>
-      </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-        {/* Country Header */}
-        <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="h-48 bg-gradient-to-r from-indigo-500 to-purple-500 flex items-end">
-            {flags && (
-              <img src={flags} alt={country.name.common} className="w-24 h-16 object-cover mx-6 mb-4 rounded-lg shadow-lg border-2 border-white" />
-            )}
-          </div>
-          <div className="px-6 pb-6">
-            <div className="flex justify-between items-start -mt-8 mb-4">
+        <div className="absolute bottom-0 left-0 right-0 p-8">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">{country.name.common}</h1>
-                <p className="text-gray-500 mt-1">{country.region} {country.subregion && `• ${country.subregion}`}</p>
+                <div className="flex items-center gap-3 mb-2">
+                  {country.flags?.png && (
+                    <img src={country.flags.png} alt="" className="w-8 h-6 rounded shadow" />
+                  )}
+                  <span className="text-white/80 font-medium">{country.region}</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2">
+                  {country.name.common}
+                </h1>
+                <p className="text-white/80 text-lg">
+                  {country.subregion} • {population} people
+                </p>
               </div>
-              <FavoriteButton countryCode={country.cca2} />
-            </div>
-            
-            {/* Quick Stats */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-gray-500 uppercase">Languages</p>
-                <p className="font-semibold text-gray-900">{country.languages ? Object.values(country.languages).length : 1}</p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-gray-500 uppercase">Currency</p>
-                <p className="font-semibold text-gray-900">{currencyCode}</p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-gray-500 uppercase">Population</p>
-                <p className="font-semibold text-gray-900">{country.population ? (country.population / 1000000).toFixed(1) + 'M' : 'N/A'}</p>
-              </div>
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-xs text-gray-500 uppercase">Capital</p>
-                <p className="font-semibold text-gray-900">{country.capital?.[0] || 'N/A'}</p>
+              <div className="flex items-center gap-3">
+                <FavoriteButton countryCode={country.cca2} />
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </div>
 
-        {/* Map */}
-        <section className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="h-64">
-            <MapView lat={country.latlng[0]} lon={country.latlng[1]} name={country.name.common} />
-          </div>
-        </section>
-
-        {/* Weather & Currency */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <section className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Weather in {displayCity}</h2>
-            <WeatherCard lat={country.latlng[0]} lon={country.latlng[1]} city={displayCity} />
-            <div className="mt-4">
-              <ForecastWidget lat={country.latlng[0]} lon={country.latlng[1]} />
+      <div className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
+        <div className="flex flex-wrap gap-3">
+          <div className="bg-white rounded-2xl shadow-lg px-5 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+              <span className="text-xl">🌡️</span>
             </div>
-          </section>
+            <div>
+              <p className="text-xs text-gray-500">Capital</p>
+              <p className="font-bold text-gray-900">{displayCity}</p>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-2xl shadow-lg px-5 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-xl">💱</span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Currency</p>
+              <p className="font-bold text-gray-900">{currencyCode}</p>
+            </div>
+          </div>
 
-          <section className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Currency</h2>
-            <CurrencyConverter currency={currencyCode} />
-          </section>
+          <div className="bg-white rounded-2xl shadow-lg px-5 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <span className="text-xl">🗣️</span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Language</p>
+              <p className="font-bold text-gray-900">
+                {country.languages ? Object.values(country.languages)[0] : "N/A"}
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg px-5 py-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
+              <span className="text-xl">⏰</span>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Timezone</p>
+              <p className="font-bold text-gray-900">{country.timezone?.[0] || "UTC"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+          <div className="relative h-80">
+            <MapView
+              lat={country.latlng[0]}
+              lon={country.latlng[1]}
+              name={country.name.common}
+            />
+            <div className="absolute top-4 left-4 px-4 py-2 bg-white/90 backdrop-blur rounded-full text-sm font-medium text-gray-700 shadow">
+              📍 {country.region} • {country.subregion}
+            </div>
+          </div>
         </div>
 
-        {/* Language */}
-        <section className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Languages</h2>
-          <LanguageInfo country={country} />
-        </section>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-3xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Weather in {displayCity}</h2>
+              <span className="text-sm text-gray-500">Live forecast</span>
+            </div>
+            <WeatherCard
+              lat={country.latlng[0]}
+              lon={country.latlng[1]}
+              city={displayCity}
+            />
+          </div>
 
-        {/* Hotels */}
-        <section className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Hotels in {displayCity}</h2>
-          <HotelsList city={displayCity} />
-        </section>
+          <div className="bg-white rounded-3xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Currency Exchange</h2>
+            <CurrencyConverter currency={currencyCode} />
+          </div>
+        </div>
 
-        {/* Attractions */}
-        <section className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Top Attractions in {displayCity}</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-3xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Language & Essentials</h2>
+            <LanguageInfo country={country} />
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Accommodations</h2>
+              <span className="text-sm text-rose-500 font-medium">Hotels in {displayCity}</span>
+            </div>
+            <HotelsList city={displayCity} />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Top Attractions</h2>
+              <p className="text-gray-500 mt-1">Must-see places in {displayCity}</p>
+            </div>
+          </div>
           <AttractionsList city={displayCity} />
-        </section>
+        </div>
 
-        {/* Airports */}
-        <section className="bg-white rounded-2xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Airports</h2>
+        <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Airports</h2>
+            <p className="text-gray-500 mt-1">Major airports in {country.name.common}</p>
+          </div>
           <AirportInfo countryName={country.name.common} />
-        </section>
-      </main>
+        </div>
+
+        <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">7-Day Forecast</h2>
+            <p className="text-gray-500 mt-1">Extended weather outlook for {displayCity}</p>
+          </div>
+          <ForecastWidget lat={country.latlng[0]} lon={country.latlng[1]} />
+        </div>
+
+        <div className="bg-gradient-to-r from-rose-500 to-amber-500 rounded-3xl p-8 md:p-12">
+          <div className="text-center">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+              Ready to visit {country.name.common}?
+            </h3>
+            <p className="text-white/90 mb-6 max-w-2xl mx-auto">
+              Book your flights, hotels, and experiences all in one place
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button className="px-8 py-4 bg-white text-rose-500 font-bold rounded-full hover:shadow-lg transition-all hover:scale-105">
+                Book Now
+              </button>
+              <button className="px-8 py-4 border-2 border-white text-white font-bold rounded-full hover:bg-white/20 transition">
+                Save for Later
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

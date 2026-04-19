@@ -1,37 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { getForecast } from "../services/weatherService";
 
-// Weather icon mapping
-function getWeatherIcon(condition) {
+const getDayName = (timestamp) => {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+};
+
+const getWeatherIcon = (condition) => {
   if (!condition) return "🌤️";
-  const lower = condition.toLowerCase();
-  if (lower.includes("rain")) return "🌧️";
-  if (lower.includes("cloud")) return "☁️";
-  if (lower.includes("clear") || lower.includes("sun")) return "☀️";
-  if (lower.includes("thunder") || lower.includes("storm")) return "⛈️";
-  if (lower.includes("snow")) return "❄️";
-  if (lower.includes("mist") || lower.includes("fog")) return "🌫️";
+  const c = condition.toLowerCase();
+  if (c.includes("rain")) return "🌧️";
+  if (c.includes("cloud")) return "☁️";
+  if (c.includes("clear")) return "☀️";
+  if (c.includes("snow")) return "❄️";
+  if (c.includes("thunder")) return "⛈️";
+  if (c.includes("fog") || c.includes("mist")) return "🌫️";
   return "🌤️";
-}
-
-// Get day name from date
-function getDayName(dt) {
-  if (!dt) return "";
-  const d = new Date(dt * 1000);
-  const today = new Date();
-  const diff = Math.round((d - today) / (1000 * 60 * 60 * 24));
-  
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Tomorrow";
-  return d.toLocaleDateString("en-US", { weekday: "short" });
-}
-
-// Short date format
-function getShortDate(dt) {
-  if (!dt) return "";
-  const d = new Date(dt * 1000);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+};
 
 export default function ForecastWidget({ lat, lon }) {
   const [forecast, setForecast] = useState(null);
@@ -39,10 +24,7 @@ export default function ForecastWidget({ lat, lon }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!lat || !lon) {
-      setLoading(false);
-      return;
-    }
+    if (!lat || !lon) return;
 
     async function fetchForecast() {
       setLoading(true);
@@ -52,8 +34,7 @@ export default function ForecastWidget({ lat, lon }) {
         const data = await getForecast(lat, lon);
         setForecast(data);
       } catch (err) {
-        console.error("Forecast fetch error:", err);
-        setError(err.message);
+        setError("Unable to load forecast");
       } finally {
         setLoading(false);
       }
@@ -64,21 +45,18 @@ export default function ForecastWidget({ lat, lon }) {
 
   if (!lat || !lon) {
     return (
-      <div className="text-center py-4 text-gray-500">
-        <p>No location data</p>
+      <div className="bg-gray-50 rounded-2xl p-6 text-center">
+        <span className="text-4xl block mb-2">📅</span>
+        <p className="text-gray-500">No location data available</p>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 animate-pulse">
         {[...Array(7)].map((_, i) => (
-          <div key={i} className="text-center p-2">
-            <div className="h-3 w-8 bg-gray-200 rounded animate-pulse mx-auto mb-2" />
-            <div className="h-6 w-6 bg-gray-200 rounded-full animate-pulse mx-auto mb-2" />
-            <div className="h-4 w-10 bg-gray-200 rounded animate-pulse mx-auto" />
-          </div>
+          <div key={i} className="h-40 bg-gray-200 rounded-2xl" />
         ))}
       </div>
     );
@@ -86,40 +64,109 @@ export default function ForecastWidget({ lat, lon }) {
 
   if (error) {
     return (
-      <div className="text-center py-4 text-gray-500">
-        <p>Unable to load forecast</p>
-        <p className="text-xs text-gray-400 mt-1">{error}</p>
+      <div className="bg-gray-50 rounded-2xl p-6 text-center">
+        <span className="text-4xl block mb-2">🌡️</span>
+        <p className="text-gray-500">{error}</p>
       </div>
     );
   }
 
-  if (!forecast || !forecast.daily || forecast.daily.length === 0) {
+  const daily = forecast?.daily?.slice(0, 7) || [];
+
+  if (daily.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-500">
-        <p>No forecast data available</p>
+      <div className="bg-gray-50 rounded-2xl p-6 text-center">
+        <span className="text-4xl block mb-2">📅</span>
+        <p className="text-gray-500">No forecast data available</p>
       </div>
     );
   }
-
-  const dailyForecast = forecast.daily.slice(0, 7);
 
   return (
-    <div className="overflow-x-auto">
-      <div className="flex gap-2 min-w-max">
-        {dailyForecast.map((day, idx) => (
-          <div
-            key={idx}
-            className={`flex flex-col items-center p-2 rounded-lg min-w-[60px] ${
-              idx === 0 ? "bg-white/30" : "bg-white/10 hover:bg-white/20"
-            }`}
-          >
-            <p className="text-xs font-medium">{getDayName(day.dt)}</p>
-            <p className="text-[10px] opacity-70">{getShortDate(day.dt)}</p>
-            <span className="text-2xl my-1">{getWeatherIcon(day.weather?.[0]?.main)}</span>
-            <p className="text-sm font-bold">{Math.round(day.temp?.day || 0)}°</p>
-            <p className="text-[10px] opacity-70">↓{Math.round(day.temp?.min || 0)}°</p>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">📅</span>
+          <span className="font-semibold text-gray-900">7-Day Forecast</span>
+        </div>
+        <button className="text-rose-500 text-sm font-medium hover:underline">
+          View hourly →
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+        {daily.map((day, idx) => {
+          const temp = Math.round(day.temp?.day || 0);
+          const min = Math.round(day.temp?.min || 0);
+          const max = Math.round(day.temp?.max || 0);
+          const condition = day.weather?.[0]?.description || "";
+          const icon = getWeatherIcon(condition);
+          const isToday = idx === 0;
+
+          return (
+            <div
+              key={idx}
+              className={`rounded-2xl p-4 text-center transition-all hover:shadow-lg ${
+                isToday
+                  ? "bg-gradient-to-b from-rose-100 to-amber-100"
+                  : "bg-white shadow-md hover:shadow-xl"
+              }`}
+            >
+              <p className={`text-sm font-medium ${isToday ? "text-rose-600" : "text-gray-500"}`}>
+                {idx === 0 ? "Today" : getDayName(day.dt)}
+              </p>
+              <span className="text-3xl my-3 block">{icon}</span>
+              <p className="text-xl font-bold text-gray-900">{temp}°</p>
+              <div className="mt-2 flex justify-center gap-1">
+                <span className="text-xs text-gray-400">{min}°</span>
+                <div className="w-8 h-1 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-rose-400 rounded-full"
+                    style={{
+                      width: `${Math.max(10, Math.min(100, ((max - min) / 40) * 100))}%`,
+                      marginLeft: `${Math.min(90, (min / 45) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-gray-400">{max}°</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-2 capitalize truncate">
+                {condition}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+        {daily[0]?.wind_speed && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full">
+            <span>💨</span>
+            <span className="text-sm text-gray-600">Wind: {daily[0].wind_speed} m/s</span>
           </div>
-        ))}
+        )}
+        {daily[0]?.humidity && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full">
+            <span>💧</span>
+            <span className="text-sm text-gray-600">Humidity: {daily[0].humidity}%</span>
+          </div>
+        )}
+        {daily[0]?.sunrise && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full">
+            <span>🌅</span>
+            <span className="text-sm text-gray-600">
+              Sunrise: {new Date(daily[0].sunrise * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          </div>
+        )}
+        {daily[0]?.sunset && (
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-full">
+            <span>🌇</span>
+            <span className="text-sm text-gray-600">
+              Sunset: {new Date(daily[0].sunset * 1000).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );

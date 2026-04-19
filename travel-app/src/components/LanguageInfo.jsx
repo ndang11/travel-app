@@ -1,164 +1,143 @@
 import React, { useState } from "react";
 
-// Common phrases in different languages
-const PHRASES = {
-  en: ["Hello", "Thank you", "Please", "Goodbye", "Yes", "No"],
-  es: ["Hola", "Gracias", "Por favor", "Adiós", "Sí", "No"],
-  fr: ["Bonjour", "Merci", "S'il vous plaît", "Au revoir", "Oui", "Non"],
-  de: ["Hallo", "Danke", "Bitte", "Auf Wiedersehen", "Ja", "Nein"],
-  it: ["Ciao", "Grazie", "Per favore", "Arrivederci", "Sì", "No"],
-  ja: ["こんにちは", "ありがとう", "お願いします", "さようなら", "はい", "いいえ"],
-  zh: ["你好", "谢谢", "请", "再见", "是", "不是"],
-  ar: ["مرحبا", "شكرا", "من فضلك", "مع السلامة", "نعم", "لا"],
-  pt: ["Olá", "Obrigado", "Por favor", "Adeus", "Sim", "Não"],
-  ru: ["Привет", "Спасибо", "Пожалуйста", "До свидания", "Да", "Нет"],
+const COMMON_PHRASES = {
+  en: [
+    { english: "Hello", local: "Hello" },
+    { english: "Thank you", local: "Thank you" },
+    { english: "Please", local: "Please" },
+    { english: "Excuse me", local: "Excuse me" },
+    { english: "Yes/No", local: "Yes/No" },
+  ],
+  es: [
+    { english: "Hello", local: "Hola" },
+    { english: "Thank you", local: "Gracias" },
+    { english: "Please", local: "Por favor" },
+    { english: "Excuse me", local: "Disculpe" },
+    { english: "Yes/No", local: "Sí/No" },
+  ],
+  fr: [
+    { english: "Hello", local: "Bonjour" },
+    { english: "Thank you", local: "Merci" },
+    { english: "Please", local: "S'il vous plaît" },
+    { english: "Excuse me", local: "Excusez-moi" },
+    { english: "Yes/No", local: "Oui/Non" },
+  ],
+  de: [
+    { english: "Hello", local: "Hallo" },
+    { english: "Thank you", local: "Danke" },
+    { english: "Please", local: "Bitte" },
+    { english: "Excuse me", local: "Entschuldigung" },
+    { english: "Yes/No", local: "Ja/Nein" },
+  ],
+  it: [
+    { english: "Hello", local: "Ciao" },
+    { english: "Thank you", local: "Grazie" },
+    { english: "Please", local: "Per favore" },
+    { english: "Excuse me", local: "Scusi" },
+    { english: "Yes/No", local: "Sì/No" },
+  ],
+  ja: [
+    { english: "Hello", local: "こんにちは" },
+    { english: "Thank you", local: "ありがとう" },
+    { english: "Please", local: "お願いします" },
+    { english: "Excuse me", local: "すみません" },
+    { english: "Yes/No", local: "はい/いいえ" },
+  ],
+  zh: [
+    { english: "Hello", local: "你好" },
+    { english: "Thank you", local: "谢谢" },
+    { english: "Please", local: "请" },
+    { english: "Excuse me", local: "打扰一下" },
+    { english: "Yes/No", local: "是/否" },
+  ],
+  ar: [
+    { english: "Hello", local: "مرحبا" },
+    { english: "Thank you", local: "شكرا" },
+    { english: "Please", local: "من فضلك" },
+    { english: "Excuse me", local: "عفوا" },
+    { english: "Yes/No", local: "نعم/لا" },
+  ],
+  pt: [
+    { english: "Hello", local: "Olá" },
+    { english: "Thank you", local: "Obrigado" },
+    { english: "Please", local: "Por favor" },
+    { english: "Excuse me", local: "Com licença" },
+    { english: "Yes/No", local: "Sim/Não" },
+  ],
+  ru: [
+    { english: "Hello", local: "Привет" },
+    { english: "Thank you", local: "Спасибо" },
+    { english: "Please", local: "Пожалуйста" },
+    { english: "Excuse me", local: "Извините" },
+    { english: "Yes/No", local: "Да/Нет" },
+  ],
 };
 
-// Get language code from full name
-function getLangCode(langName, allLanguages) {
-  const entry = Object.entries(allLanguages || {}).find(
-    ([, name]) => name.toLowerCase() === langName.toLowerCase()
-  );
-  return entry ? entry[0] : langName.toLowerCase().slice(0, 2);
-}
-
 export default function LanguageInfo({ country }) {
-  const languages = country?.languages ? Object.values(country.languages) : [];
-  const [selectedLang, setSelectedLang] = useState(languages[0] || null);
-  const [activeTab, setActiveTab] = useState("basics");
-
-  // Get phrases for selected language
-  const langCode = selectedLang ? getLangCode(selectedLang, country?.languages) : "en";
-  const phrases = PHRASES[langCode] || PHRASES.en;
+  const languages = country?.languages
+    ? Object.values(country.languages)
+    : [];
+  
+  const mainLang = languages[0]?.toLowerCase() || "en";
+  const phrases = COMMON_PHRASES[mainLang] || COMMON_PHRASES.en;
 
   return (
-    <div className="space-y-4">
-      {/* Language Selector */}
-      <div className="flex items-center gap-2">
-        <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center">
-          <span className="text-xl">🗣️</span>
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-slate-900">Languages Spoken</h3>
-          <p className="text-xs text-slate-500">Primary languages in {country?.name?.common}</p>
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <span>🗣️</span> Languages Spoken
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {languages.length > 0 ? (
+            languages.map((lang) => (
+              <span
+                key={lang}
+                className="px-4 py-2 bg-gradient-to-r from-rose-100 to-amber-100 text-gray-700 font-medium rounded-full"
+              >
+                {lang}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-500">No language data available</span>
+          )}
         </div>
       </div>
 
-      {/* Language Pills */}
-      {languages.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {languages.map((lang) => (
-            <button
-              key={lang}
-              onClick={() => setSelectedLang(lang)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                selectedLang === lang
-                  ? "bg-indigo-600 text-white shadow-md"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-              }`}
+      <div>
+        <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <span>📝</span> Common Phrases
+        </h3>
+        <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
+          {phrases.map((phrase, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between py-2 border-b border-gray-200 last:border-0"
             >
-              {lang}
-            </button>
+              <span className="text-gray-600">{phrase.english}</span>
+              <span className="font-semibold text-gray-900">{phrase.local}</span>
+            </div>
           ))}
         </div>
-      )}
+      </div>
 
-      {languages.length === 0 ? (
-        <div className="text-center py-6 text-slate-500">
-          <span className="text-3xl">🌍</span>
-          <p className="mt-2">No language data available</p>
-        </div>
-      ) : (
-        <>
-          {/* Tab Navigation */}
-          <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
-            <button
-              onClick={() => setActiveTab("basics")}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                activeTab === "basics"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              📝 Basics
-            </button>
-            <button
-              onClick={() => setActiveTab("phrases")}
-              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                activeTab === "phrases"
-                  ? "bg-white text-indigo-600 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              💬 Phrases
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === "basics" && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4">
-                  <p className="text-xs text-slate-500 uppercase mb-1">Official</p>
-                  <p className="font-semibold text-slate-900">{languages[0]}</p>
-                </div>
-                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4">
-                  <p className="text-xs text-indigo-500 uppercase mb-1">Speakers</p>
-                  <p className="font-semibold text-indigo-900">
-                    {languages.length > 1 ? `${languages.length} languages` : "Primary"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Language List */}
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-xs font-medium text-slate-500 uppercase mb-2">All Languages</p>
-                <ul className="space-y-2">
-                  {languages.map((lang, idx) => (
-                    <li key={idx} className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-indigo-400" />
-                      <span className="text-sm text-slate-700">{lang}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "phrases" && (
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4">
-              <p className="text-sm font-medium text-indigo-900 mb-3">
-                Essential phrases in {selectedLang}
-              </p>
-              <div className="space-y-2">
-                {phrases.map((phrase, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center justify-between bg-white/70 rounded-lg px-3 py-2"
-                  >
-                    <span className="text-sm text-slate-600">{phrase}</span>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(phrase)}
-                      className="text-xs text-indigo-600 hover:text-indigo-700"
-                    >
-                      Copy
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Country Info */}
-      {country?.name?.common && (
-        <div className="pt-3 border-t border-slate-100">
-          <p className="text-xs text-slate-500 text-center">
-            Language information for <span className="font-medium text-slate-700">{country.name.common}</span>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-blue-50 rounded-xl p-4">
+          <span className="text-2xl block mb-2">🗺️</span>
+          <p className="text-sm text-gray-600">Driving Side</p>
+          <p className="font-bold text-gray-900">
+            {country?.car?.side === "right" ? "Right-hand drive" : "Left-hand drive"}
           </p>
         </div>
-      )}
+        <div className="bg-amber-50 rounded-xl p-4">
+          <span className="text-2xl block mb-2">🔌</span>
+          <p className="text-sm text-gray-600">Power Plugs</p>
+          <p className="font-bold text-gray-900">
+            {country?.idd?.root 
+              ? `+${country.idd.root}${country.idd.suffixes?.[0] || ""}` 
+              : "Unknown"}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
